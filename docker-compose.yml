@@ -2,19 +2,12 @@ version: '3.8'
 
 services:
   backend:
-    image: php:8.4-cli
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: arwa_backend
-    working_dir: /app
-    volumes:
-      - ./backend:/app
-    command: >
-      bash -c "apt-get update && apt-get install -y libzip-dev zip unzip git default-mysql-client
-      && docker-php-ext-install pdo_mysql zip
-      && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-      && composer install
-      && php artisan serve --host=0.0.0.0 --port=8000"
     ports:
-      - "8888:8000"
+      - "8888:80"
     environment:
       - DB_CONNECTION=mysql
       - DB_HOST=db
@@ -22,20 +15,22 @@ services:
       - DB_DATABASE=arwa_db
       - DB_USERNAME=root
       - DB_PASSWORD=password
+      - APP_ENV=production
+      - APP_DEBUG=false
     depends_on:
       - db
+    restart: unless-stopped
 
   frontend:
-    image: node:20
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: arwa_frontend
-    working_dir: /app
-    volumes:
-      - ./frontend:/app
-    command: bash -c "npm install && npm start -- --host 0.0.0.0 --poll 2000"
     ports:
-      - "4200:4200"
-    environment:
-      - CHOKIDAR_USEPOLLING=true
+      - "4200:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
 
   db:
     image: mysql:8.0
@@ -47,6 +42,7 @@ services:
       - MYSQL_DATABASE=arwa_db
     volumes:
       - db_data:/var/lib/mysql
+    restart: unless-stopped
 
 volumes:
   db_data:
