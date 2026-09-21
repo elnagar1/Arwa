@@ -1,4 +1,4 @@
-FROM php:8.3-apache
+FROM php:8.4-apache
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y \
     unzip \
     git \
     default-mysql-client \
-    && docker-php-ext-install pdo_mysql zip
+    libpq-dev \
+    && docker-php-ext-install pdo_mysql pdo_pgsql zip
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
